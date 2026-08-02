@@ -1,0 +1,43 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: ${{ github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Check out default branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Merge upstream changes
+        run: |
+          upstream=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.parent.clone_url')
+          git remote add upstream "$upstream"
+          git fetch upstream "$BRANCH"
+
+          if git merge-base --is-ancestor "upstream/$BRANCH" HEAD; then
+            echo "Already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --no-edit "upstream/$BRANCH"
+          git push origin "HEAD:$BRANCH"
