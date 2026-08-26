@@ -189,14 +189,19 @@ export default function InputBar() {
   }, [openFavoritePicker, selectedTaskIds])
 
   const handleDeleteSelected = useCallback(() => {
+    const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id))
+    const outputImageCount = new Set(selectedTasks.flatMap((task) => task.outputImages || [])).size
+    const imageText = outputImageCount > 0 ? `，共 ${outputImageCount} 张输出图片` : ''
     setConfirmDialog({
-      title: '批量删除',
-      message: `确定要删除选中的 ${selectedTaskIds.length} 个任务吗？`,
-      action: () => {
-        removeMultipleTasks(selectedTaskIds)
-      },
+      title: '删除选中图片',
+      message: `确定要删除选中的 ${selectedTaskIds.length} 个任务${imageText}吗？关联图片资源在没有其他引用时会一并清理。`,
+      confirmText: '删除选中',
+      cancelText: '取消',
+      tone: 'danger',
+      awaitAction: true,
+      action: () => removeMultipleTasks(selectedTaskIds),
     })
-  }, [selectedTaskIds, setConfirmDialog])
+  }, [tasks, selectedTaskIds, setConfirmDialog])
 
   const handleDownloadSelected = useCallback(async () => {
     const selectedTasks = tasks.filter((t) => selectedTaskIds.includes(t.id))
@@ -461,7 +466,7 @@ export default function InputBar() {
   const agentAutoImageCount = appMode === 'agent'
   const moderationDisabled = isFalProvider
   const transparentOutputAvailable = appMode === 'gallery'
-  const showTransparentOutputControl = transparentOutputAvailable && params.output_format === 'png'
+  const showTransparentOutputControl = transparentOutputAvailable && (params.output_format === 'png' || params.output_format === 'webp')
   const transparentOutputEnabled = transparentOutputAvailable && showTransparentOutputControl && params.transparent_output
   const compressionDisabled = params.output_format === 'png' || isFalProvider
   const outputImageLimit = getOutputImageLimitForSettings(effectiveSettings)
