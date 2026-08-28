@@ -46,6 +46,7 @@ import {
 } from './lib/db'
 import { callImageApi } from './lib/api'
 import { callAgentConversationTitleApi, callAgentResponsesApi, callBatchImageSingle, parseBatchImageCallArguments, type AgentApiResultImage } from './lib/agentApi'
+import { hasExplicitMultipleImageRequest } from './lib/agentImageCount'
 import { buildAgentApiInput, buildAgentContinuationInput } from './lib/agentInputBuilder'
 import { collectAgentRoundOutputImageSlots, extractAgentReferenceIds, getAgentCurrentReferenceId, getAgentGeneratedImageReferenceId } from './lib/agentImageReferences'
 import { showBrowserNotification } from './lib/browserNotification'
@@ -2707,6 +2708,7 @@ async function executeAgentRound(
     const round = conversation.rounds.find((item) => item.id === roundId)
     const userMessage = round ? conversation.messages.find((message) => message.id === round.userMessageId) : null
     if (!round || !userMessage) return
+    const multipleImagesRequested = hasExplicitMultipleImageRequest(userMessage.content)
     const maskDataUrl = round.maskImageId ? await ensureImageCached(round.maskImageId) : undefined
     if (round.maskImageId && !maskDataUrl) throw new Error('遮罩图片已不存在')
 
@@ -3245,6 +3247,7 @@ async function executeAgentRound(
         settings: requestSettings,
         profile: activeProfile,
         imageProfile,
+        multipleImagesRequested,
         params: imageParams,
         input: apiInputForTurn,
         maskDataUrl,
@@ -3421,13 +3424,21 @@ async function executeAgentRound(
       const functionCallOutputs : ResponsesOutputItem[] = []
 
       if (imageFunctionCalls.length > 0) {
-        for (const fc of imageFunctionCalls) {
+        const executableCalls = multipleImagesRequested ? imageFunctionCalls : imageFunctionCalls.slice(0, 1)
+        for (const fc of executableCalls) {
           const output = await executeSingleImageFunctionCall(fc)
           if (output == null) continue
           functionCallOutputs.push({
             type: 'function_call_output',
             call_id: fc.call_id,
             output,
+          })
+        }
+        for (const fc of imageFunctionCalls.slice(executableCalls.length)) {
+          functionCallOutputs.push({
+            type: 'function_call_output',
+            call_id: fc.call_id,
+            output: JSON.stringify({ error: 'Only one image may be generated before the next user message.' }),
           })
         }
       }
@@ -3485,6 +3496,11 @@ async function executeAgentRound(
         updatedAt: Date.now(),
         rounds: current.rounds.map((item) => item.id === roundId ? { ...item, responseId: lastResponseId, responseOutput: accumulatedOutputItemsWithFunctionOutputs } : item),
       }))
+
+      if (!multipleImagesRequested && imageFunctionCalls.length > 0) {
+        accumulatedOutputItems = accumulatedOutputItemsWithFunctionOutputs
+        break
+      }
 
       if (toolCallsUsed >= maxToolCalls) {
         reachedToolLimit = true

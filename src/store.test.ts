@@ -4215,6 +4215,59 @@ describe('agent text model selection', () => {
     await vi.waitFor(() => expect(callAgentResponsesApi).toHaveBeenCalledTimes(1))
 
     expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].profile.model).toBe('gpt-5.6-sol')
+    expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].multipleImagesRequested).toBe(false)
+  })
+
+  it('仅在用户明确指定多图数量时启用多图生成', async () => {
+    useStore.setState({ prompt: '请生成三张不同风格的图片' })
+    vi.mocked(callAgentResponsesApi).mockResolvedValueOnce({
+      text: '',
+      images: [],
+      outputItems: [],
+      responseId: 'response-multiple-images',
+    })
+
+    await submitAgentMessage()
+    await vi.waitFor(() => expect(callAgentResponsesApi).toHaveBeenCalledTimes(1))
+
+    expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].multipleImagesRequested).toBe(true)
+  })
+
+  it('默认生成一张后结束当前轮次并等待用户继续', async () => {
+    vi.mocked(callAgentResponsesApi)
+      .mockResolvedValueOnce({
+        text: '开始生成一张图片。',
+        images: [],
+        outputItems: [{
+          type: 'function_call',
+          name: 'generate_image',
+          call_id: 'single-image-call',
+          arguments: JSON.stringify({ id: 'image', prompt: '自然风景' }),
+        }],
+        responseId: 'response-single-image',
+      })
+      .mockResolvedValueOnce({
+        text: '不应自动继续',
+        images: [],
+        outputItems: [],
+        responseId: 'unexpected-continuation',
+      })
+    vi.mocked(callImageApi).mockResolvedValueOnce({
+      images: ['data:image/png;base64,single-image'],
+      actualParams: {},
+      actualParamsList: [{}],
+      revisedPrompts: ['自然风景'],
+    })
+
+    await submitAgentMessage()
+    await vi.waitFor(() => expect(useStore.getState().agentConversations[0].rounds[0]?.status).toBe('done'))
+
+    expect(callImageApi).toHaveBeenCalledTimes(1)
+    expect(callAgentResponsesApi).toHaveBeenCalledTimes(1)
+    expect(useStore.getState().tasks.find((task) => task.agentToolCallId === 'single-image-call')).toMatchObject({
+      status: 'done',
+      prompt: '自然风景',
+    })
   })
 
   it('sends the selected text model without a prefix', async () => {
