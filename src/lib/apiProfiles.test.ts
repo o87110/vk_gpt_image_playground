@@ -153,6 +153,7 @@ describe('text model prefix env', () => {
 
     const effective = getEffectiveAgentTextProfile(normalizeSettings({
       agentApiConfigMode: 'hybrid',
+      textModel: 'gpt-6-astra',
       profiles: [
         createDefaultOpenAIProfile({ apiKey: 'image-key' }),
         createDefaultOpenAIProfile({
@@ -165,7 +166,7 @@ describe('text model prefix env', () => {
       ],
     }))
     expect(effective).not.toBeNull()
-    expect(effective!.model).toBe('openai/gpt-5.6-sol')
+    expect(effective!.model).toBe('openai/gpt-6-astra')
   })
 
   it('strips a trailing slash from the configured prefix', async () => {
@@ -269,7 +270,7 @@ describe('textModel', () => {
   })
 
   it('passes through supported values', () => {
-    for (const value of ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const) {
+    for (const value of ['gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const) {
       expect(normalizeSettings({ textModel: value }).textModel).toBe(value)
     }
   })
@@ -306,8 +307,8 @@ describe('getEffectiveAgentTextProfile', () => {
   })
 
   it('uses the selected text model without a prefix', () => {
-    const effective = getEffectiveAgentTextProfile(buildSettings('gpt-5.6-sol'))
-    expect(effective!.model).toBe('gpt-5.6-sol')
+    const effective = getEffectiveAgentTextProfile(buildSettings('gpt-6-astra'))
+    expect(effective!.model).toBe('gpt-6-astra')
   })
 
   it('does not mutate the underlying profile', () => {
