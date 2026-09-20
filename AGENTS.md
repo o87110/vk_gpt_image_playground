@@ -154,7 +154,7 @@ else params = baseParams
 
 ## Git 提交
 
-- Git 提交标题必须遵循 Conventional Commits 格式：`<type>: <中文说明>`，使用 scope 时为 `<type>(<scope>): <中文说明>`。
+- 每次 Git 提交都必须使用中文标题，无需用户重复提醒。标题必须遵循 Conventional Commits 格式：`<type>: <中文说明>`，使用 scope 时为 `<type>(<scope>): <中文说明>`。
 - `type` 使用 `feat`、`fix`、`docs`、`refactor`、`test`、`chore`、`build`、`ci`、`perf` 或 `revert`，冒号后保留一个空格，说明部分必须使用中文。
 - 不对提交正文语言作限制。
 

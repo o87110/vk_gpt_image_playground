@@ -195,10 +195,11 @@ export default function ApiKeyPromptModal() {
           }}
           className="mt-2 w-full rounded-xl border border-blue-300 bg-white px-3.5 py-3 text-sm text-gray-800 outline-none ring-2 ring-blue-500/15 transition focus:border-blue-500 dark:border-blue-500/60 dark:bg-white/[0.04] dark:text-gray-100"
         >
+          {/* 原生下拉弹层不一定继承 select 的半透明背景，选项需使用不透明配色。 */}
           {sub2ApiKeys.map((key) => (
-            <option key={key.id ?? key.key} value={key.key}>{formatSub2ApiKeyLabel(key)}</option>
+            <option key={key.id ?? key.key} value={key.key} className="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">{formatSub2ApiKeyLabel(key)}</option>
           ))}
-          <option value="">自定义输入…</option>
+          <option value="" className="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">自定义输入…</option>
         </select>
         <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">来自 sub2api 账户的 Key</p>
       </>
