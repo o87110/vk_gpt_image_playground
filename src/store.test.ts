@@ -4270,9 +4270,14 @@ describe('agent text model selection', () => {
     })
   })
 
-  it('sends the selected text model without a prefix', async () => {
+  it.each(['low', 'medium', 'high', 'xhigh'] as const)('发送所选文本模型和思考程度 %s', async (reasoningEffort) => {
+    const settings = useStore.getState().settings
     useStore.setState({
-      settings: normalizeSettings({ ...useStore.getState().settings, textModel: 'gpt-5.6-terra' }),
+      settings: normalizeSettings({
+        ...settings,
+        textModel: 'gpt-5.6-terra',
+        profiles: settings.profiles.map((profile) => profile.id === settings.agentTextProfileId ? { ...profile, reasoningEffort } : profile),
+      }),
     })
     vi.mocked(callAgentResponsesApi).mockResolvedValueOnce({
       text: '',
@@ -4285,6 +4290,7 @@ describe('agent text model selection', () => {
     await vi.waitFor(() => expect(callAgentResponsesApi).toHaveBeenCalledTimes(1))
 
     expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].profile.model).toBe('gpt-5.6-terra')
+    expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].profile.reasoningEffort).toBe(reasoningEffort)
   })
 })
 

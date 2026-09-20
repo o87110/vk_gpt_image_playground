@@ -304,11 +304,40 @@ describe('getEffectiveAgentTextProfile', () => {
     expect(effective!.id).toBe(DEFAULT_TEXT_PROFILE_ID)
     expect(effective!.model).toBe(DEFAULT_TEXT_MODEL)
     expect(effective!.apiKey).toBe('text-key')
+    expect(effective!.reasoningEffort).toBe('medium')
   })
 
   it('uses the selected text model without a prefix', () => {
     const effective = getEffectiveAgentTextProfile(buildSettings('gpt-6-astra'))
     expect(effective!.model).toBe('gpt-6-astra')
+  })
+
+  it.each(['hybrid', 'native', 'off'] as const)('迁移 %s 模式的独立思考程度后允许修改文本配置', (agentApiConfigMode) => {
+    const settings = normalizeSettings({ ...buildSettings(), agentApiConfigMode, activeProfileId: DEFAULT_TEXT_PROFILE_ID })
+    settings.profiles = settings.profiles.map((profile) => ({ ...profile, reasoningEffort: 'max' }))
+    expect(getEffectiveAgentTextProfile(settings)?.reasoningEffort).toBe('max')
+
+    const selected = normalizeSettings({ ...settings, textReasoningEffort: 'low' })
+    expect(getEffectiveAgentTextProfile(selected)?.reasoningEffort).toBe('low')
+    expect(selected).not.toHaveProperty('textReasoningEffort')
+    expect(selected.profiles.find((profile) => profile.id === DEFAULT_TEXT_PROFILE_ID)?.reasoningEffort).toBe('low')
+    expect(selected.profiles.find((profile) => profile.id === DEFAULT_OPENAI_PROFILE_ID)?.reasoningEffort).toBe('max')
+    expect(settings.profiles.every((profile) => profile.reasoningEffort === 'max')).toBe(true)
+    expect(normalizeSettings(selected)).toEqual(selected)
+
+    const updated = normalizeSettings({
+      ...selected,
+      profiles: selected.profiles.map((profile) => profile.id === DEFAULT_TEXT_PROFILE_ID ? { ...profile, reasoningEffort: 'high' } : profile),
+    })
+    expect(getEffectiveAgentTextProfile(updated)?.reasoningEffort).toBe('high')
+  })
+
+  it('忽略无效的思考程度并沿用默认值', () => {
+    for (const value of ['invalid', 'max', '', 42, null]) {
+      const settings = normalizeSettings({ ...buildSettings(), textReasoningEffort: value })
+      expect(settings).not.toHaveProperty('textReasoningEffort')
+      expect(getEffectiveAgentTextProfile(settings)?.reasoningEffort).toBe('medium')
+    }
   })
 
   it('does not mutate the underlying profile', () => {

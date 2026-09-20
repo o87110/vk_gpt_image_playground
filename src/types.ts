@@ -3,6 +3,7 @@
 export type ApiMode = 'images' | 'responses'
 export const REASONING_EFFORT_VALUES = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const
 export type ReasoningEffort = typeof REASONING_EFFORT_VALUES[number]
+export const TEXT_REASONING_EFFORT_VALUES = ['low', 'medium', 'high', 'xhigh'] as const
 export type AppMode = 'gallery' | 'agent'
 export type AgentApiConfigMode = 'off' | 'native' | 'hybrid'
 export const ZIP_DOWNLOAD_ROUTE_VALUES = [

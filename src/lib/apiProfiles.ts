@@ -13,7 +13,7 @@ import type {
   CustomProviderSubmitMapping,
   CustomProviderTemplate,
 } from '../types'
-import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_STREAM_PARTIAL_IMAGES, DEFAULT_ZIP_DOWNLOAD_ROUTES, ZIP_DOWNLOAD_ROUTE_VALUES } from '../types'
+import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_STREAM_PARTIAL_IMAGES, DEFAULT_ZIP_DOWNLOAD_ROUTES, TEXT_REASONING_EFFORT_VALUES, ZIP_DOWNLOAD_ROUTE_VALUES } from '../types'
 import { customProviderSupportsNativeTransparentBackground } from './customProviderCapabilities'
 import { shouldUseApiProxy } from './devProxy'
 import { normalizeReasoningEffort, normalizeStreamPartialImages, parseDefaultApiUrl } from './defaultApiUrl'
@@ -736,6 +736,10 @@ export function normalizeSettings(input: Partial<AppSettings> | unknown): AppSet
   const textModel = typeof record.textModel === 'string' && TEXT_MODEL_VALUES.includes(record.textModel as (typeof TEXT_MODEL_VALUES)[number])
     ? record.textModel as (typeof TEXT_MODEL_VALUES)[number]
     : DEFAULT_TEXT_MODEL
+  // 将早期独立保存的思考程度迁入文本配置，避免持续覆盖设置页和 URL 的修改。
+  const textReasoningEffort = TEXT_REASONING_EFFORT_VALUES.includes(record.textReasoningEffort as (typeof TEXT_REASONING_EFFORT_VALUES)[number])
+    ? record.textReasoningEffort as (typeof TEXT_REASONING_EFFORT_VALUES)[number]
+    : undefined
 
   return {
     baseUrl: active.baseUrl,
@@ -766,7 +770,11 @@ export function normalizeSettings(input: Partial<AppSettings> | unknown): AppSet
     separateAgentProfileKeys,
     agentTextProfileId,
     agentImageProfileId,
-    profiles,
+    profiles: textReasoningEffort
+      ? profiles.map((profile) => profile.id === (agentApiConfigMode === 'off' ? activeProfileId : agentTextProfileId)
+        ? { ...profile, reasoningEffort: textReasoningEffort }
+        : profile)
+      : profiles,
     activeProfileId,
   }
 }
@@ -777,11 +785,16 @@ export function getAgentTextApiProfile(settings: Partial<AppSettings> | unknown)
   return normalized.profiles.find((profile) => profile.id === normalized.agentTextProfileId) ?? null
 }
 
-/** 实际发送请求的文本模型 profile：在 agentTextProfile 基础上按 settings.textModel 覆盖 model（默认发送裸模型名，配置了 VITE_DEFAULT_TEXT_MODEL_PREFIX 时自动加前缀） */
+/** 实际发送请求的文本模型 profile：应用模型选择和模型前缀，未配置思考程度时默认使用中等 */
 export function getEffectiveAgentTextProfile(settings: Partial<AppSettings> | unknown): ApiProfile | null {
   const base = getAgentTextApiProfile(settings)
   if (!base) return null
-  return { ...base, model: applyTextModelPrefix(normalizeSettings(settings).textModel) }
+  const normalized = normalizeSettings(settings)
+  return {
+    ...base,
+    model: applyTextModelPrefix(normalized.textModel),
+    reasoningEffort: base.reasoningEffort ?? 'medium',
+  }
 }
 
 export function getAgentImageApiProfile(settings: Partial<AppSettings> | unknown): ApiProfile | null {
