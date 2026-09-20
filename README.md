@@ -475,6 +475,7 @@ npm run build
 
 | 参数 | 说明 | 示例 |
 |------|------|------|
+| `theme` | 页面主题：`dark` 强制深色，`light` 强制浅色；未传或其他值时跟随系统 | `?theme=dark` |
 | `apiUrl` | API Base URL | `?apiUrl=https://api.example.com/v1` |
 | `apiKey` | API Key | `?apiKey=sk-xxxx` |
 | `model` | 模型 ID（未传时按 apiMode 使用默认模型） | `?model=gpt-image-2` |
@@ -487,6 +488,8 @@ npm run build
 | `profileId` | 目标配置 ID；匹配到同 ID 配置时直接更新 | `?profileId=my-service` |
 | `transparentBackgroundMethod` | 透明背景实现方式：`api`（原生）或 `local`（本地后处理） | `?transparentBackgroundMethod=local` |
 | `src_url` | sub2api 页面地址；自动提取 origin，仅替换仍使用默认 OpenAI 地址的 profile（兼容旧版 `src_host`） | `?src_url=https://sub2.example.com/custom/app-id` |
+
+仅启用深色模式可访问 `https://你的域名/?theme=dark`；已有查询参数时追加 `&theme=dark`。主题参数会保留在地址栏中，刷新后继续生效。
 
 集成示例（New API 聊天系统）：
 

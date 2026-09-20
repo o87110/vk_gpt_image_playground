@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#111827" />
+    <script>
+      // 在首屏绘制前应用主题，避免 URL 指定深色时闪现浅色。
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+      const applyTheme = () => {
+        const theme = new URLSearchParams(window.location.search).get('theme')
+        document.documentElement.classList.toggle('dark', theme === 'dark' || (theme !== 'light' && systemTheme.matches))
+      }
+      applyTheme()
+      systemTheme.addEventListener('change', applyTheme)
+      window.addEventListener('popstate', applyTheme)
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="GPT Image" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
