@@ -1,4 +1,6 @@
-import { TEXT_MODEL_VALUES } from '../lib/apiProfiles'
+import { TEXT_REASONING_EFFORT_VALUES, type ReasoningEffort } from '../types'
+import { getAgentTextApiProfile, TEXT_MODEL_VALUES } from '../lib/apiProfiles'
+import { isPresetProfileLocked } from '../lib/presetConfig'
 import { useStore } from '../store'
 import Select from './Select'
 
@@ -12,9 +14,21 @@ const TEXT_MODEL_DESCRIPTIONS: Record<string, string> = {
 const IMAGE_MODEL_DESCRIPTION =
   '旗舰级图像模型。原生多模态理解，忠实还原复杂画面指令，细节、光影与画面内文字渲染出色，支持文生图、图生图与局部重绘，适合追求最佳出图效果的场景。'
 
+const REASONING_EFFORT_LABELS: Record<ReasoningEffort, string> = {
+  none: '不思考（沿用配置）',
+  minimal: '最低（沿用配置）',
+  low: '轻度',
+  medium: '中',
+  high: '高',
+  xhigh: '极高',
+  max: '最高（沿用配置）',
+}
+
 export default function ModelSelectorPanel() {
   const settings = useStore((s) => s.settings)
   const setSettings = useStore((s) => s.setSettings)
+  const textProfile = getAgentTextApiProfile(settings)
+  const effort = textProfile?.reasoningEffort ?? 'medium'
 
   const selectClass = 'px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] text-xs transition-all duration-200 shadow-sm'
 
@@ -37,6 +51,20 @@ export default function ModelSelectorPanel() {
           onChange={(model) => setSettings({ textModel: model })}
           options={TEXT_MODEL_VALUES.map((value) => ({ label: value, value, tooltip: `${value}\n${TEXT_MODEL_DESCRIPTIONS[value]}` }))}
           showValueTooltips
+          className={selectClass}
+        />
+      </label>
+      <label className="flex flex-col gap-0.5">
+        <span className="text-gray-400 dark:text-gray-500 ml-1 text-[11px]">思考程度</span>
+        <Select
+          value={effort}
+          valueLabel={REASONING_EFFORT_LABELS[effort]}
+          onChange={(value) => {
+            if (!textProfile) return
+            setSettings({ profiles: settings.profiles.map((profile) => profile.id === textProfile.id ? { ...profile, reasoningEffort: value } : profile) })
+          }}
+          options={TEXT_REASONING_EFFORT_VALUES.map((value) => ({ label: REASONING_EFFORT_LABELS[value], value }))}
+          disabled={!textProfile || isPresetProfileLocked(textProfile.id)}
           className={selectClass}
         />
       </label>
