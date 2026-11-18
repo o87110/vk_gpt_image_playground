@@ -35,9 +35,13 @@ export const DEFAULT_IMAGES_MODEL = 'gpt-image-2'
 export function applyTextModelPrefix(model: string): string {
   return DEFAULT_TEXT_MODEL_PREFIX ? `${DEFAULT_TEXT_MODEL_PREFIX}/${model}` : model
 }
-export const DEFAULT_RESPONSES_MODEL = applyTextModelPrefix('gpt-5.6-sol')
-export const TEXT_MODEL_VALUES = ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const
-export const DEFAULT_TEXT_MODEL = 'gpt-5.6-sol'
+export const TEXT_MODEL_VALUES = [
+  'gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol',
+  'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+] as const
+export const DEFAULT_TEXT_MODEL = TEXT_MODEL_VALUES[0]
+export const DEFAULT_RESPONSES_MODEL = applyTextModelPrefix(DEFAULT_TEXT_MODEL)
+export const DEFAULT_RESPONSES_MODELS = [DEFAULT_RESPONSES_MODEL, applyTextModelPrefix('gpt-5.6-sol')]
 export const DEFAULT_FAL_BASE_URL = 'https://fal.run'
 export const DEFAULT_FAL_MODEL = 'openai/gpt-image-2'
 export const DEFAULT_OPENAI_PROFILE_ID = 'default-openai'
@@ -970,7 +974,7 @@ function hasOnlyDefaultProfiles(settings: AppSettings): boolean {
     textProfile.provider === DEFAULT_TEXT_PROFILE.provider &&
     textProfile.baseUrl === DEFAULT_TEXT_PROFILE.baseUrl &&
     textProfile.apiKey === imageProfile.apiKey &&
-    textProfile.model === DEFAULT_TEXT_PROFILE.model &&
+    DEFAULT_RESPONSES_MODELS.includes(textProfile.model) &&
     textProfile.timeout === DEFAULT_TEXT_PROFILE.timeout &&
     textProfile.apiMode === DEFAULT_TEXT_PROFILE.apiMode &&
     textProfile.reasoningEffort === DEFAULT_TEXT_PROFILE.reasoningEffort &&
