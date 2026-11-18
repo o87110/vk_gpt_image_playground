@@ -31,8 +31,16 @@ describe('ModelSelectorPanel', () => {
     expect(document.body.textContent).toContain('gpt-image-2\n旗舰级图像模型')
 
     act(() => triggers[0].dispatchEvent(new MouseEvent('mouseout', { bubbles: true })))
+    act(() => triggers[1].dispatchEvent(new MouseEvent('click', { bubbles: true })))
+    expect(triggers[1].textContent).toBe(container.querySelector('[data-option-value]')?.textContent)
+    act(() => container.querySelector<HTMLElement>('[data-option-value="gpt-6.2-astra"]')!.click())
     act(() => triggers[1].dispatchEvent(new MouseEvent('mouseover', { bubbles: true })))
-    expect(document.body.textContent).toContain('gpt-5.6-sol\n上一代高性能文本模型')
+    expect(document.body.textContent).toContain('gpt-6.2-astra\ngpt-6.2 顶级旗舰文本模型。')
+
+    act(() => triggers[1].dispatchEvent(new MouseEvent('click', { bubbles: true })))
+    act(() => container.querySelector<HTMLElement>('[data-option-value="gpt-6.2-sol"]')!.click())
+    expect(triggers[1].textContent).toBe('gpt-6.2-sol')
+    expect(getEffectiveAgentTextProfile(useStore.getState().settings)?.model).toBe('gpt-6.2-sol')
 
     act(() => root.unmount())
   })

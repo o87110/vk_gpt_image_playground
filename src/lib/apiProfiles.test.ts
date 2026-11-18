@@ -8,6 +8,7 @@ import {
   DEFAULT_TEXT_PROFILE_ID,
   DEFAULT_SETTINGS,
   DEFAULT_TEXT_MODEL,
+  TEXT_MODEL_VALUES,
   createDefaultOpenAIProfile,
   createDefaultFalProfile,
   getApiProviderLabel,
@@ -148,12 +149,12 @@ describe('text model prefix env', () => {
     } = await import('./apiProfiles')
 
     // 存储的默认文本 profile 与实际发送的模型保持一致
-    expect(DEFAULT_RESPONSES_MODEL).toBe('openai/gpt-5.6-sol')
+    expect(DEFAULT_RESPONSES_MODEL).toBe(`openai/${TEXT_MODEL_VALUES[0]}`)
     expect(DEFAULT_SETTINGS.profiles[1].model).toBe(DEFAULT_RESPONSES_MODEL)
 
     const effective = getEffectiveAgentTextProfile(normalizeSettings({
       agentApiConfigMode: 'hybrid',
-      textModel: 'gpt-6-astra',
+      textModel: 'gpt-6.2-sol',
       profiles: [
         createDefaultOpenAIProfile({ apiKey: 'image-key' }),
         createDefaultOpenAIProfile({
@@ -166,7 +167,7 @@ describe('text model prefix env', () => {
       ],
     }))
     expect(effective).not.toBeNull()
-    expect(effective!.model).toBe('openai/gpt-6-astra')
+    expect(effective!.model).toBe('openai/gpt-6.2-sol')
   })
 
   it('strips a trailing slash from the configured prefix', async () => {
@@ -175,7 +176,7 @@ describe('text model prefix env', () => {
 
     const { DEFAULT_RESPONSES_MODEL, applyTextModelPrefix } = await import('./apiProfiles')
 
-    expect(DEFAULT_RESPONSES_MODEL).toBe('openai/gpt-5.6-sol')
+    expect(DEFAULT_RESPONSES_MODEL).toBe(`openai/${TEXT_MODEL_VALUES[0]}`)
     expect(applyTextModelPrefix('gpt-5.6-terra')).toBe('openai/gpt-5.6-terra')
   })
 })
@@ -264,13 +265,13 @@ describe('default profiles', () => {
 })
 
 describe('textModel', () => {
-  it('defaults to gpt-5.6-sol', () => {
-    expect(DEFAULT_SETTINGS.textModel).toBe(DEFAULT_TEXT_MODEL)
-    expect(normalizeSettings({}).textModel).toBe(DEFAULT_TEXT_MODEL)
+  it('默认选中模型列表中的第一项', () => {
+    expect(DEFAULT_SETTINGS.textModel).toBe(TEXT_MODEL_VALUES[0])
+    expect(normalizeSettings({}).textModel).toBe(TEXT_MODEL_VALUES[0])
   })
 
   it('passes through supported values', () => {
-    for (const value of ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const) {
+    for (const value of ['gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'] as const) {
       expect(normalizeSettings({ textModel: value }).textModel).toBe(value)
     }
   })

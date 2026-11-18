@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { strToU8, zipSync } from 'fflate'
 import { DEFAULT_PARAMS } from './types'
-import { createDefaultFalProfile, createDefaultOpenAIProfile, DEFAULT_RESPONSES_MODEL, DEFAULT_SETTINGS, normalizeSettings } from './lib/apiProfiles'
+import { createDefaultFalProfile, createDefaultOpenAIProfile, DEFAULT_RESPONSES_MODEL, DEFAULT_SETTINGS, normalizeSettings, TEXT_MODEL_VALUES } from './lib/apiProfiles'
 import type { AgentConversation, ExportData, StoredImage, StoredImageThumbnail, TaskRecord } from './types'
 import { getSelectedImageMentionLabel } from './lib/promptImageMentions'
 import { hasActiveDataOperations } from './lib/dataOperations'
@@ -4214,7 +4214,7 @@ describe('agent text model selection', () => {
     await submitAgentMessage()
     await vi.waitFor(() => expect(callAgentResponsesApi).toHaveBeenCalledTimes(1))
 
-    expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].profile.model).toBe('gpt-5.6-sol')
+    expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].profile.model).toBe(TEXT_MODEL_VALUES[0])
     expect(vi.mocked(callAgentResponsesApi).mock.calls[0][0].multipleImagesRequested).toBe(false)
   })
 

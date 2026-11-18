@@ -11,6 +11,7 @@ import {
   DEFAULT_FAL_MODEL,
   DEFAULT_IMAGES_MODEL,
   DEFAULT_RESPONSES_MODEL,
+  DEFAULT_RESPONSES_MODELS,
   DEFAULT_SETTINGS,
   findEquivalentApiProfile,
   getApiProviderLabel,
@@ -1547,7 +1548,7 @@ export default function SettingsModal() {
                     onChange={(value) => {
                       const apiMode = value as AppSettings['apiMode']
                       const nextModel =
-                        activeProfile.model === DEFAULT_IMAGES_MODEL || activeProfile.model === DEFAULT_RESPONSES_MODEL
+                        activeProfile.model === DEFAULT_IMAGES_MODEL || DEFAULT_RESPONSES_MODELS.includes(activeProfile.model)
                           ? getDefaultModelForMode(apiMode)
                           : activeProfile.model
                       updateActiveProfile({ apiMode, model: nextModel }, true)
@@ -1585,7 +1586,7 @@ export default function SettingsModal() {
                   ) : activeCustomProvider ? (
                     <>当前使用 <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/[0.06]">{activeCustomProvider.name}</code>。</>
                   ) : (activeProfile.apiMode ?? DEFAULT_SETTINGS.apiMode) === 'responses' ? (
-                    <>Responses API 需要使用支持 <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/[0.06]">image_generation</code> 工具的文本模型，例如 <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/[0.06]">{DEFAULT_RESPONSES_MODEL}</code>。该标识表示可通过外部 API 调用的 GPT-5.6-Sol 模型。</>
+                    <>Responses API 需要使用支持 <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/[0.06]">image_generation</code> 工具的文本模型，例如 <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/[0.06]">{DEFAULT_RESPONSES_MODEL}</code>。</>
                   ) : (
                     <>Images API 需要使用 GPT Image 模型，例如 <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/[0.06]">{DEFAULT_IMAGES_MODEL}</code>。</>
                   )}

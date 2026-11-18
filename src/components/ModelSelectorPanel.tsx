@@ -4,18 +4,17 @@ import { isPresetProfileLocked } from '../lib/presetConfig'
 import { useStore } from '../store'
 import Select from './Select'
 
-const TEXT_MODEL_DESCRIPTIONS: Record<string, string> = {
-  'gpt-6-astra': '顶级旗舰文本模型。相比 gpt-5.6-sol，拥有更强的推理、理解与复杂任务处理能力，擅长高难度指令、多步骤规划与精细图像创作指导，适合追求最高质量、处理复杂创作需求的场景。',
-  'gpt-6.1-sol': '进阶主力文本模型。在复杂任务中提供接近 gpt-6-astra 的表现，同时兼顾使用成本，适合多步骤创作规划、精细提示词优化与图像创作指导。',
-  'gpt-6-sol': '新一代主力文本模型。兼顾推理能力与使用成本，适合复杂指令、多轮沟通与多步骤创作规划，可用于提示词优化和图像创作指导。',
-  'gpt-6-luna': '新一代高效文本模型。侧重低成本与高频任务处理，适合需求明确的对话、提示词改写和创意草稿，便于快速尝试不同表达与创作方向。',
-  'gpt-5.6-sol': '上一代高性能文本模型。具备较强的推理与理解能力，适合复杂指令、多轮对话与图像创作指导，也可用于延续既有创作流程。',
-  'gpt-5.6-terra': '均衡型文本模型。在能力、速度与成本之间取得良好平衡，日常对话与图像生成任务的主力选择，适合大多数场景。',
-  'gpt-5.6-luna': '轻量快速型文本模型。响应速度最快、成本最低，适合简单对话与快速生成任务，复杂需求可切换到更高阶模型。',
+const TEXT_MODEL_DESCRIPTIONS: Record<(typeof TEXT_MODEL_VALUES)[number], string> = {
+  'gpt-6.2-astra': 'gpt-6.2 顶级旗舰文本模型。',
+  'gpt-6.2-sol': 'gpt-6.2 主力文本模型。',
+  'gpt-6-astra': 'gpt-6 顶级旗舰文本模型。',
+  'gpt-6.1-sol': 'gpt-6.1 进阶主力文本模型。',
+  'gpt-6-sol': 'gpt-6 主力文本模型。',
+  'gpt-6-luna': 'gpt-6 高效文本模型。',
+  'gpt-5.6-sol': 'gpt-5.6 高性能文本模型。',
+  'gpt-5.6-terra': 'gpt-5.6 均衡型文本模型。',
+  'gpt-5.6-luna': 'gpt-5.6 轻量文本模型。',
 }
-
-const IMAGE_MODEL_DESCRIPTION =
-  '旗舰级图像模型。原生多模态理解，忠实还原复杂画面指令，细节、光影与画面内文字渲染出色，支持文生图、图生图与局部重绘，适合追求最佳出图效果的场景。'
 
 const REASONING_EFFORT_LABELS: Record<ReasoningEffort, string> = {
   none: '不思考（沿用配置）',
@@ -42,7 +41,7 @@ export default function ModelSelectorPanel() {
         <Select
           value="gpt-image-2"
           onChange={() => {}}
-          options={[{ label: 'gpt-image-2', value: 'gpt-image-2', tooltip: `gpt-image-2\n${IMAGE_MODEL_DESCRIPTION}` }]}
+          options={[{ label: 'gpt-image-2', value: 'gpt-image-2', tooltip: 'gpt-image-2\n旗舰级图像模型。' }]}
           showValueTooltips
           className={selectClass}
         />
